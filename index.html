@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coach Concursos Fiscal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#1B4332;--verde-med:#2D6A4F;--verde-vivo:#52B788;--verde-pale:#D8F3DC;--verde-ultra:#F0FBF4;
+  --amarelo:#E9C46A;--vermelho:#E76F51;--azul:#264653;
+  --creme:#FAFAF7;--creme2:#F2F0E8;--borda:#E4E2D8;
+  --texto:#1A1A18;--texto2:#5A5A52;--texto3:#9A9A8E;
+  --mono:'DM Mono',monospace;--display:'Syne',sans-serif;--body:'Instrument Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--creme);color:var(--texto);min-height:100vh;font-size:14px;line-height:1.6}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:224px;background:var(--verde);display:flex;flex-direction:column;z-index:100}
+.brand{padding:24px 20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-icon{width:34px;height:34px;background:var(--verde-vivo);border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:17px}
+.brand h1{font-family:var(--display);font-size:13px;font-weight:700;color:#fff;line-height:1.3}
+.brand p{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;font-family:var(--mono)}
+nav{flex:1;padding:10px 0;overflow-y:auto}
+.nav-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase;padding:14px 20px 5px;font-family:var(--display)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:rgba(255,255,255,.48);font-size:12.5px;transition:all .15s;border-left:2px solid transparent;font-family:var(--body);font-weight:500}
+.nav-item:hover{color:rgba(255,255,255,.82);background:rgba(255,255,255,.05)}
+.nav-item.active{color:#fff;background:rgba(255,255,255,.09);border-left-color:var(--verde-vivo)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.sidebar-foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08)}
+.sync-btn{width:100%;padding:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:rgba(255,255,255,.55);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--body);transition:all .15s}
+.sync-btn:hover{background:rgba(255,255,255,.13);color:#fff}
+.sync-btn svg{width:13px;height:13px}
+.sync-btn.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.main{margin-left:224px;min-height:100vh}
+.topbar{background:var(--creme);border-bottom:1px solid var(--borda);padding:15px 30px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h2{font-family:var(--display);font-size:17px;font-weight:700;color:var(--texto);letter-spacing:-.01em}
+.topbar p{font-size:11px;color:var(--texto3);margin-top:1px;font-family:var(--mono)}
+.content{padding:26px 30px}
+.page{display:none}.page.active{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px}
+.kpi{background:#fff;border:1px solid var(--borda);border-radius:13px;padding:16px 18px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;right:0;width:50px;height:50px;border-radius:0 13px 0 50px;opacity:.07}
+.kpi.verde::after{background:var(--verde-vivo)}.kpi.amarelo::after{background:var(--amarelo)}
+.kpi.vermelho::after{background:var(--vermelho)}.kpi.azul::after{background:var(--azul)}
+.kpi-label{font-size:9.5px;font-weight:700;color:var(--texto3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-family:var(--display)}
+.kpi-val{font-family:var(--display);font-size:28px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.kpi.verde .kpi-val{color:var(--verde-med)}.kpi.amarelo .kpi-val{color:#9A6B00}
+.kpi.vermelho .kpi-val{color:#B84A2F}.kpi.azul .kpi-val{color:var(--azul)}
+.kpi-sub{font-size:10.5px;color:var(--texto3);margin-top:4px;font-family:var(--mono)}
+.card{background:#fff;border:1px solid var(--borda);border-radius:13px;overflow:hidden}
+.card-head{padding:13px 18px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card-title{font-family:var(--display);font-size:11px;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:7px}
+.card-body{padding:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:9px 14px;font-size:9.5px;font-weight:700;color:var(--texto3);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--borda);font-family:var(--display);white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--creme2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--creme2)}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;font-family:var(--mono);white-space:nowrap}
+.b-verde{background:var(--verde-pale);color:var(--verde)}.b-amarelo{background:#FFF3CD;color:#7A4800}
+.b-vermelho{background:#FFE8E4;color:#8B2500}.b-azul{background:#E8F0F5;color:var(--azul)}
+.b-cinza{background:var(--creme2);color:var(--texto2)}
+.prog{height:5px;border-radius:3px;background:var(--creme2);overflow:hidden;flex:1}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.acerto-row{display:flex;align-items:center;gap:7px}
+.acerto-pct{font-family:var(--mono);font-size:12px;font-weight:500;min-width:30px;text-align:right}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;border:1px solid var(--borda);background:#fff;color:var(--texto2);transition:all .15s;font-family:var(--body)}
+.btn:hover{background:var(--creme2)}.btn-primary{background:var(--verde);color:#fff;border-color:var(--verde)}
+.btn-primary:hover{background:var(--verde-med)}.btn-sm{padding:5px 11px;font-size:12px;border-radius:7px}.btn-xs{padding:3px 8px;font-size:11px;border-radius:6px}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:13px}
+.alert-info{background:#E8F0F5;color:var(--azul);border:1px solid #B0CEDE}
+.rev-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:9px;border-left:3px solid;margin-bottom:7px;background:#fff;border:1px solid var(--borda)}
+.rev-item.urg{border-left:3px solid var(--vermelho)}.rev-item.soon{border-left:3px solid var(--amarelo)}.rev-item.ok{border-left:3px solid var(--verde-vivo)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.chip{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--borda);cursor:pointer;background:#fff;color:var(--texto2);transition:all .15s}
+.chip:hover{background:var(--creme2)}.chip.active{background:var(--verde);color:#fff;border-color:var(--verde)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--verde);color:#fff;padding:11px 16px;border-radius:9px;font-size:13px;font-weight:500;z-index:999;transform:translateY(70px);opacity:0;transition:all .25s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 24px rgba(27,67,50,.3)}
+.toast.show{transform:translateY(0);opacity:1}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.search-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.search-row input{max-width:200px;padding:6px 11px;font-size:12px}
+.search-row select{max-width:180px;padding:6px 11px;font-size:12px}
+.empty{text-align:center;padding:36px 20px;color:var(--texto3);font-size:13px}
+label{display:block;font-size:10.5px;font-weight:700;color:var(--texto2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--display)}
+input,select,textarea{width:100%;padding:8px 11px;border:1px solid var(--borda);border-radius:8px;font-size:13px;font-family:var(--body);color:var(--texto);background:#fff;transition:border .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde-vivo);box-shadow:0 0 0 3px rgba(82,183,136,.1)}
+/* META SEMANAL */
+.meta-header-card{background:linear-gradient(135deg,var(--verde) 0%,var(--verde-med) 100%);border-radius:14px;padding:20px 24px;color:#fff;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.meta-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.meta-kpi{background:#fff;border:1px solid var(--borda);border-radius:11px;padding:14px;text-align:center}
+.meta-kpi-val{font-family:var(--display);font-size:24px;font-weight:800}
+.meta-kpi-label{font-size:10px;color:var(--texto3);text-transform:uppercase;letter-spacing:.06em;font-family:var(--display)}
+.bloco-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:5px;border:1px solid var(--borda)}
+.bloco-item.concluido{background:var(--verde-ultra);border-color:#B7DFBE}
+.bloco-item.pendente{background:#fff}
+/* DISC FILTRO */
+.disc-selector select{font-family:var(--display);font-size:14px;font-weight:600;padding:10px 14px;border-radius:10px;max-width:320px;margin-bottom:16px}
+.disc-header-card{background:#fff;border:1px solid var(--borda);border-radius:13px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.topico-card{background:#fff;border:1px solid var(--borda);border-radius:10px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.kanban-board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start}
+.kanban-col{border-radius:11px;overflow:hidden;min-height:200px}
+.kanban-col-head{padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.kanban-col-body{padding:8px;display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow-y:auto}
+.kanban-card{border-radius:8px;padding:8px 10px;font-size:11px;border:1px solid transparent;cursor:default}
+.kanban-disc-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-top:8px;margin-bottom:3px;padding:0 2px}
+.pend-section{margin-bottom:20px}
+.pend-section-head{padding:10px 14px;border-radius:9px 9px 0 0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pend-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid var(--borda);border-top:none;gap:12px}
+.pend-row:last-child{border-radius:0 0 9px 9px}
+.topico-card:hover{background:var(--verde-ultra);border-color:#B7DFBE}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🎯</div>
+    <h1>Coach Concursos<br>Fiscal</h1>
+    <p>auditor fiscal · 2026</p>
+  </div>
+  <nav>
+    <div class="nav-label">Principal</div>
+    <div class="nav-item active" onclick="goPage('meta',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Meta do Coach
+    </div>
+    <div class="nav-item" onclick="goPage('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard Geral
+    </div>
+    <div class="nav-label">Estudo</div>
+    <div class="nav-item" onclick="goPage('disciplinas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Por Disciplina
+    </div>
+    <div class="nav-item" onclick="goPage('revisoes',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Revisões
+    </div>
+    <div class="nav-item" onclick="goPage('kanban',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+      Kanban
+    </div>
+    <div class="nav-item" onclick="goPage('pendentes',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Revisões Pendentes
+    </div>
+    <div class="nav-item" onclick="goPage('historico',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Histórico
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <button class="sync-btn" id="sync-btn" onclick="syncData()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="sync-icon"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sincronizar
+    </button>
+    <div id="last-sync" style="font-size:9.5px;color:rgba(255,255,255,.22);margin-top:7px;text-align:center;font-family:var(--mono)"></div>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <h2 id="page-title">Meta do Coach</h2>
+      <p id="page-sub">35 blocos semanais gerados automaticamente</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--texto3);font-family:var(--mono)">
+      <span id="status-dot" style="width:7px;height:7px;border-radius:50%;background:var(--borda);display:inline-block"></span>
+      <span id="status-txt">carregando...</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- META DO COACH -->
+    <div id="page-meta" class="page active">
+      <div id="meta-header"></div>
+      <div id="meta-kpis" class="meta-kpis" style="display:none"></div>
+      <div id="meta-grid"></div>
+      <div class="alert alert-info" style="margin-top:16px">
+        Envie <strong>/meta</strong> no Telegram para gerar ou atualizar a meta semanal.
+      </div>
+    </div>
+
+    <!-- DASHBOARD GERAL -->
+    <div id="page-dashboard" class="page">
+      <div class="kpi-grid">
+        <div class="kpi verde"><div class="kpi-label">Total tópicos</div><div class="kpi-val" id="k-total">—</div><div class="kpi-sub">cadastrados</div></div>
+        <div class="kpi verde"><div class="kpi-label">Dominados</div><div class="kpi-val" id="k-dom">—</div><div class="kpi-sub" id="k-dom-pct">—</div></div>
+        <div class="kpi amarelo"><div class="kpi-label">Acerto médio</div><div class="kpi-val" id="k-acerto">—</div><div class="kpi-sub">geral</div></div>
+        <div class="kpi vermelho"><div class="kpi-label">Urgentes</div><div class="kpi-val" id="k-urg">—</div><div class="kpi-sub">revisões atrasadas</div></div>
+      </div>
+      <div class="g2" style="margin-bottom:18px">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Acerto por disciplina</div></div>
+          <div class="card-body"><div style="position:relative;height:200px"><canvas id="chart-disc"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Distribuição de status</div></div>
+          <div class="card-body"><div style="position:relative;height:200px"><canvas id="chart-status"></canvas></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Todos os tópicos</div>
+          <div class="search-row">
+            <input type="text" id="dash-search" placeholder="Buscar..." oninput="renderDashTable()">
+            <select id="dash-fstatus" onchange="renderDashTable()">
+              <option value="">Todos os status</option>
+              <option>Não iniciado</option><option>Em andamento</option>
+              <option>Revisando</option><option>Dominado</option>
+            </select>
+          </div>
+        </div>
+        <table><thead><tr><th>Disciplina</th><th>Tópico</th><th>Status</th><th>Acerto</th><th>Próx. revisão</th></tr></thead>
+        <tbody id="dash-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- POR DISCIPLINA -->
+    <div id="page-disciplinas" class="page">
+      <div class="disc-selector">
+        <select id="disc-select" onchange="renderDiscDetalhe()">
+          <option value="">Selecione uma disciplina...</option>
+        </select>
+      </div>
+      <div id="disc-header-wrap"></div>
+      <div id="disc-filtros" style="display:none;margin-bottom:14px">
+        <div class="chips" id="disc-chips">
+          <div class="chip active" data-f="todos" onclick="setDiscFilter(this)">Todos</div>
+          <div class="chip" data-f="Não iniciado" onclick="setDiscFilter(this)">Não iniciado</div>
+          <div class="chip" data-f="Em andamento" onclick="setDiscFilter(this)">Em andamento</div>
+          <div class="chip" data-f="Revisando" onclick="setDiscFilter(this)">Revisando</div>
+          <div class="chip" data-f="Dominado" onclick="setDiscFilter(this)">Dominado</div>
+        </div>
+      </div>
+      <div id="disc-topicos-list"></div>
+      <div id="disc-empty" class="empty" style="margin-top:40px">
+        <div style="font-size:32px;margin-bottom:10px">📚</div>
+        Selecione uma disciplina acima para ver os tópicos detalhados
+      </div>
+    </div>
+
+    <!-- REVISÕES -->
+    <div id="page-revisoes" class="page">
+      <div class="alert alert-info" style="margin-bottom:18px">
+        ⚡ <strong>&lt;60%:</strong> 7 dias &nbsp;|&nbsp; ⏱ <strong>60–84%:</strong> 21 dias &nbsp;|&nbsp; 🏆 <strong>≥85%:</strong> 30 dias
+      </div>
+      <div class="chips">
+        <div class="chip active" data-f="all" onclick="setRevF(this)">Todas</div>
+        <div class="chip" data-f="urg" onclick="setRevF(this)">Atrasadas</div>
+        <div class="chip" data-f="semana" onclick="setRevF(this)">Esta semana</div>
+        <div class="chip" data-f="21" onclick="setRevF(this)">Próximos 21 dias</div>
+      </div>
+      <div id="rev-list"></div>
+    </div>
+
+    <!-- KANBAN -->
+    <div id="page-kanban" class="page">
+      <div id="kanban-board"></div>
+    </div>
+
+    <!-- REVISÕES PENDENTES -->
+    <div id="page-pendentes" class="page">
+      <div id="pendentes-content"></div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="page-historico" class="page">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Histórico de sessões</div>
+          <div class="search-row"><input type="text" id="hist-search" placeholder="Buscar..." oninput="renderHistorico()"></div>
+        </div>
+        <div id="hist-list" style="padding:12px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwlftmol72B178nlMz41AOCQVKz8r33-rl9KjQCs8nihYk0I_d96M0nwteSlhxUDNhw/exec';
+
+let cache = { topicos:[], historico:[], meta:[], metaGeradoEm:null };
+let chartDisc=null, chartStatus=null;
+let revFilter='all', discFilter='todos', discAtual='';
+let currentPage='meta';
+
+const PAGE_META = {
+  meta:        ['Meta do Coach','35 blocos semanais gerados automaticamente'],
+  dashboard:   ['Dashboard Geral','visão geral do progresso'],
+  disciplinas: ['Por Disciplina','controle detalhado por disciplina'],
+  revisoes:    ['Agenda de Revisões','revisão espaçada automática'],
+  historico:   ['Histórico','sessões de estudo registradas'],
+  kanban:      ['Kanban de Estudos','tópicos organizados por status'],
+  pendentes:   ['Revisões Pendentes','atrasadas e próximas revisões'],
+};
+
+function goPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  if(el) el.classList.add('active');
+  currentPage=p;
+  const [t,s]=PAGE_META[p]||['',''];
+  document.getElementById('page-title').textContent=t;
+  document.getElementById('page-sub').textContent=s;
+  renderPage(p);
+}
+
+function renderPage(p){
+  if(p==='meta')        renderMeta();
+  if(p==='dashboard')   renderDashboard();
+  if(p==='disciplinas') populateDiscSelect();
+  if(p==='revisoes')    renderRevisoes();
+  if(p==='historico')   renderHistorico();
+  if(p==='kanban')      renderKanban();
+  if(p==='pendentes')   renderPendentes();
+}
+
+// UTILS
+function revInterval(a){return a>=85?30:a>=60?21:7}
+function daysToNext(t){
+  if(!t.ultimoEstudo) return null;
+  const p=t.ultimoEstudo.split('/'); if(p.length<3) return null;
+  const nd=new Date(p[2],p[1]-1,p[0]); nd.setDate(nd.getDate()+revInterval(t.acerto||0));
+  const today=new Date(); today.setHours(0,0,0,0);
+  return Math.ceil((nd-today)/86400000);
+}
+function acertoColor(v){return v>=80?'#2D6A4F':v>=60?'#9A6B00':'#B84A2F'}
+function barColor(v){return v>=80?'#52B788':v>=60?'#E9C46A':'#E76F51'}
+function statusBadge(s){
+  const m={'Não iniciado':'b-cinza','Em andamento':'b-azul','Revisando':'b-amarelo','Dominado':'b-verde'};
+  return '<span class="badge '+(m[s]||'b-cinza')+'">'+s+'</span>';
+}
+function prioBadge(p){
+  const m={'Alta':'b-vermelho','Média':'b-azul','Baixa':'b-cinza'};
+  return '<span class="badge '+(m[p]||'b-cinza')+'">'+p+'</span>';
+}
+function acertoWidget(v){
+  const pct=Math.round(v||0);
+  return '<div class="acerto-row"><div class="prog"><div class="prog-fill" style="width:'+pct+'%;background:'+barColor(pct)+'"></div></div><span class="acerto-pct" style="color:'+acertoColor(pct)+'">'+pct+'%</span></div>';
+}
+function fmtDate(s){return s||'—'}
+
+// SYNC
+async function syncData(){
+  const btn=document.getElementById('sync-btn');
+  btn.classList.add('spin');
+  setStatus('sincronizando...','#E9C46A');
+  try{
+    const [tRes,hRes,mRes]=await Promise.all([
+      fetch(API+'?action=topicos',{redirect:'follow'}).then(r=>r.json()),
+      fetch(API+'?action=historico',{redirect:'follow'}).then(r=>r.json()),
+      fetch(API+'?action=meta',{redirect:'follow'}).then(r=>r.json()).catch(()=>({meta:[]})),
+    ]);
+    cache.topicos=tRes.topicos||[];
+    cache.historico=hRes.historico||[];
+    cache.meta=mRes.meta||[];
+    cache.metaGeradoEm=mRes.geradoEm||null;
+    document.getElementById('last-sync').textContent='sync '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    setStatus('conectado','#52B788');
+    toast('✅ Dados sincronizados!');
+    renderPage(currentPage);
+  }catch(e){
+    setStatus('erro','#E76F51');
+    toast('❌ Erro ao sincronizar');
+  }
+  btn.classList.remove('spin');
+}
+function setStatus(t,c){document.getElementById('status-txt').textContent=t;document.getElementById('status-dot').style.background=c}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800)}
+
+// META DO COACH
+function renderMeta(){
+  const meta=cache.meta||[];
+  const header=document.getElementById('meta-header');
+  const kpisEl=document.getElementById('meta-kpis');
+  const grid=document.getElementById('meta-grid');
+
+  if(!meta.length){
+    header.innerHTML='<div class="empty" style="background:#fff;border:1px solid var(--borda);border-radius:13px;padding:40px"><div style="font-size:32px;margin-bottom:10px">📋</div>Nenhuma meta gerada ainda.<br>Envie <strong>/meta</strong> no Telegram para gerar.</div>';
+    kpisEl.style.display='none';
+    grid.innerHTML='';
+    return;
+  }
+
+  const total=meta.length;
+  const conc=meta.filter(m=>m.status==='Concluído').length;
+  const pend=meta.filter(m=>m.status==='Pendente').length;
+  const emAnd=meta.filter(m=>m.status==='Em andamento').length;
+  const pct=Math.round(conc/total*100);
+  const geradoEm=cache.metaGeradoEm?new Date(cache.metaGeradoEm).toLocaleDateString('pt-BR'):'—';
+
+  header.innerHTML=
+    '<div class="meta-header-card">'+
+      '<div>'+
+        '<div style="font-family:var(--display);font-size:18px;font-weight:800">Meta do Coach — Semana Atual</div>'+
+        '<div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;font-family:var(--mono)">gerada em '+geradoEm+' · 35 blocos · 5 disciplinas/dia</div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+        '<div style="font-family:var(--display);font-size:32px;font-weight:800">'+pct+'%</div>'+
+        '<div style="font-size:11px;color:rgba(255,255,255,.6);font-family:var(--mono)">'+conc+'/'+total+' concluídos</div>'+
+        '<div style="height:5px;border-radius:3px;background:rgba(255,255,255,.2);margin-top:8px;min-width:140px;overflow:hidden">'+
+          '<div style="height:100%;border-radius:3px;background:var(--verde-vivo);width:'+pct+'%;transition:width .5s"></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+  kpisEl.style.display='grid';
+  kpisEl.innerHTML=
+    '<div class="meta-kpi"><div class="meta-kpi-val" style="color:var(--verde-med)">'+conc+'</div><div class="meta-kpi-label">Concluídos</div></div>'+
+    '<div class="meta-kpi"><div class="meta-kpi-val" style="color:#B84A2F">'+pend+'</div><div class="meta-kpi-label">Pendentes</div></div>'+
+    '<div class="meta-kpi"><div class="meta-kpi-val" style="color:var(--azul)">'+emAnd+'</div><div class="meta-kpi-label">Em andamento</div></div>';
+
+  const dias=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const grupos={};
+  meta.forEach(m=>{if(!grupos[m.dia])grupos[m.dia]=[];grupos[m.dia].push(m);});
+
+  grid.innerHTML=dias.filter(d=>grupos[d]).map(dia=>{
+    const blocos=grupos[dia];
+    const concDia=blocos.filter(b=>b.status==='Concluído').length;
+    const pctDia=Math.round(concDia/blocos.length*100);
+    return '<div class="card" style="margin-bottom:14px">'+
+      '<div class="card-head">'+
+        '<div class="card-title">📌 '+dia+'</div>'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div class="prog" style="width:80px"><div class="prog-fill" style="width:'+pctDia+'%;background:'+barColor(pctDia)+'"></div></div>'+
+          '<span style="font-size:11px;font-family:var(--mono);color:var(--texto3)">'+concDia+'/'+blocos.length+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div style="padding:10px 12px">'+
+        blocos.map((b,idx)=>{
+          const icon=b.tipo==='Revisão'?'🔄':'📖';
+          const stCls=b.status==='Concluído'?'b-verde':b.status==='Em andamento'?'b-azul':'b-cinza';
+          const topNome=b.topico.length>65?b.topico.slice(0,62)+'...':b.topico;
+          const isCon=b.status==='Concluído';
+          return '<div class="bloco-item '+(isCon?'concluido':'pendente')+'">'+
+            '<span style="font-size:16px;flex-shrink:0">'+icon+'</span>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:10px;font-weight:700;color:var(--texto3);text-transform:uppercase;letter-spacing:.04em;font-family:var(--display)">'+b.disciplina+'</div>'+
+              '<div style="font-size:12px;color:'+(isCon?'var(--texto3)':'var(--texto)')+';text-decoration:'+(isCon?'line-through':'none')+'">'+topNome+'</div>'+
+            '</div>'+
+            '<span class="badge '+stCls+'" style="font-size:10px;flex-shrink:0">'+b.status+'</span>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// DASHBOARD
+function renderDashboard(){
+  const ts=cache.topicos;
+  const total=ts.length;
+  const dom=ts.filter(t=>t.status==='Dominado').length;
+  const urg=ts.filter(t=>{const d=daysToNext(t);return d!==null&&d<0;}).length;
+  const tsComAcerto=ts.filter(t=>t.acerto>0);
+  const med=tsComAcerto.length?Math.round(tsComAcerto.reduce((s,t)=>s+t.acerto,0)/tsComAcerto.length):0;
+  document.getElementById('k-total').textContent=total||'—';
+  document.getElementById('k-dom').textContent=dom||'—';
+  document.getElementById('k-dom-pct').textContent=total?Math.round(dom/total*100)+'% do total':'—';
+  document.getElementById('k-acerto').textContent=med?med+'%':'—';
+  document.getElementById('k-urg').textContent=urg!==undefined?urg:'—';
+  renderDiscChart(); renderStatusChart(); renderDashTable();
+}
+
+function renderDiscChart(){
+  const discs=[...new Set(cache.topicos.map(t=>t.disciplina))];
+  const data=discs.map(d=>{
+    const ts=cache.topicos.filter(t=>t.disciplina===d);
+    const tsA=ts.filter(t=>t.acerto>0); return{d:d.length>18?d.slice(0,16)+'…':d,v:tsA.length?Math.round(tsA.reduce((s,t)=>s+t.acerto,0)/tsA.length):0};
+  }).sort((a,b)=>b.v-a.v);
+  if(chartDisc){chartDisc.destroy();chartDisc=null;}
+  if(!data.length)return;
+  chartDisc=new Chart(document.getElementById('chart-disc'),{
+    type:'bar',
+    data:{labels:data.map(d=>d.d),datasets:[{data:data.map(d=>d.v),backgroundColor:data.map(d=>barColor(d.v)),borderRadius:5,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10,family:"'DM Mono'"}},grid:{color:'#F2F0E8'}},x:{ticks:{font:{size:10,family:"'DM Mono'"}},grid:{display:false}}}}
+  });
+}
+
+function renderStatusChart(){
+  const counts=['Dominado','Revisando','Em andamento','Não iniciado'].map(s=>cache.topicos.filter(t=>t.status===s).length);
+  if(chartStatus){chartStatus.destroy();chartStatus=null;}
+  chartStatus=new Chart(document.getElementById('chart-status'),{
+    type:'doughnut',
+    data:{labels:['Dominado','Revisando','Em andamento','Não iniciado'],
+      datasets:[{data:counts,backgroundColor:['#52B788','#E9C46A','#264653','#E4E2D8'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10,family:"'DM Mono'"},padding:10,boxWidth:10}}}}
+  });
+}
+
+function renderDashTable(){
+  const search=document.getElementById('dash-search')?.value||'';
+  const fst=document.getElementById('dash-fstatus')?.value||'';
+  let ts=cache.topicos.filter(t=>{
+    const ms=!search||(t.disciplina+t.topico).toLowerCase().includes(search.toLowerCase());
+    return ms&&(!fst||t.status===fst);
+  });
+  const tbody=document.getElementById('dash-tbody');
+  if(!tbody)return;
+  tbody.innerHTML=ts.length?ts.map(t=>{
+    const d=daysToNext(t);
+    const dL=d===null?'—':d<0?'<span style="color:#B84A2F">⚠️ '+Math.abs(d)+'d</span>':d+'d';
+    return '<tr><td style="font-weight:600;font-size:12px">'+t.disciplina+'</td><td>'+t.topico+'</td><td>'+statusBadge(t.status)+'</td><td style="min-width:110px">'+acertoWidget(t.acerto)+'</td><td style="font-size:11px;font-family:var(--mono)">'+(t.proxRevisao||'—')+' ('+dL+')</td></tr>';
+  }).join(''):'<tr><td colspan="5" class="empty">Nenhum tópico encontrado</td></tr>';
+}
+
+// POR DISCIPLINA
+function populateDiscSelect(){
+  const discs=[...new Set(cache.topicos.map(t=>t.disciplina))].sort();
+  const sel=document.getElementById('disc-select');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Selecione uma disciplina...</option>'+discs.map(d=>'<option value="'+d+'"'+(d===cur?' selected':'')+'>'+d+'</option>').join('');
+  if(cur)renderDiscDetalhe();
+  else{document.getElementById('disc-header-wrap').innerHTML='';document.getElementById('disc-topicos-list').innerHTML='';document.getElementById('disc-filtros').style.display='none';document.getElementById('disc-empty').style.display='block';}
+}
+
+function setDiscFilter(el){
+  document.querySelectorAll('#disc-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');discFilter=el.dataset.f;renderDiscTopicos();
+}
+
+function renderDiscDetalhe(){
+  const disc=document.getElementById('disc-select').value;
+  if(!disc){populateDiscSelect();return;}
+  discAtual=disc;discFilter='todos';
+  document.querySelectorAll('#disc-chips .chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#disc-chips .chip[data-f="todos"]').classList.add('active');
+  document.getElementById('disc-empty').style.display='none';
+  document.getElementById('disc-filtros').style.display='block';
+  const ts=cache.topicos.filter(t=>t.disciplina===disc);
+  const total=ts.length;
+  const dom=ts.filter(t=>t.status==='Dominado').length;
+  const em=ts.filter(t=>t.status==='Em andamento').length;
+  const rev=ts.filter(t=>t.status==='Revisando').length;
+  const ni=ts.filter(t=>t.status==='Não iniciado').length;
+  const tsA2=ts.filter(t=>t.acerto>0);
+  const med=tsA2.length?Math.round(tsA2.reduce((s,t)=>s+t.acerto,0)/tsA2.length):0;
+  const urg=ts.filter(t=>{const d=daysToNext(t);return d!==null&&d<0;}).length;
+  document.getElementById('disc-header-wrap').innerHTML=
+    '<div class="disc-header-card">'+
+      '<div>'+
+        '<div style="font-family:var(--display);font-size:20px;font-weight:800">'+disc+'</div>'+
+        '<div style="font-size:12px;color:var(--texto3);margin-top:4px;font-family:var(--mono)">'+total+' tópicos cadastrados</div>'+
+        '<div style="height:7px;border-radius:4px;background:var(--creme2);overflow:hidden;margin:10px 0 4px"><div style="height:100%;border-radius:4px;background:'+barColor(med)+';width:'+med+'%"></div></div>'+
+        '<div style="font-size:11px;color:'+acertoColor(med)+';font-family:var(--mono);font-weight:600">'+med+'% de acerto médio</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:16px;flex-wrap:wrap">'+
+        '<div style="text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--verde-med)">'+dom+'</div><div style="font-size:10px;color:var(--texto3);text-transform:uppercase;font-family:var(--display)">Dominados</div></div>'+
+        '<div style="text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:#9A6B00">'+rev+'</div><div style="font-size:10px;color:var(--texto3);text-transform:uppercase;font-family:var(--display)">Revisando</div></div>'+
+        '<div style="text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--azul)">'+em+'</div><div style="font-size:10px;color:var(--texto3);text-transform:uppercase;font-family:var(--display)">Em andamento</div></div>'+
+        '<div style="text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--texto3)">'+ni+'</div><div style="font-size:10px;color:var(--texto3);text-transform:uppercase;font-family:var(--display)">Não iniciados</div></div>'+
+        (urg>0?'<div style="text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:#B84A2F">'+urg+'</div><div style="font-size:10px;color:var(--texto3);text-transform:uppercase;font-family:var(--display)">Urgentes</div></div>':'')+
+      '</div>'+
+    '</div>';
+  renderDiscTopicos();
+}
+
+function renderDiscTopicos(){
+  const disc=discAtual;if(!disc)return;
+  let ts=cache.topicos.filter(t=>t.disciplina===disc);
+  if(discFilter!=='todos')ts=ts.filter(t=>t.status===discFilter);
+  ts=ts.sort((a,b)=>(a.acerto||0)-(b.acerto||0));
+  const wrap=document.getElementById('disc-topicos-list');
+  if(!ts.length){wrap.innerHTML='<div class="empty" style="background:#fff;border:1px solid var(--borda);border-radius:13px;padding:32px">Nenhum tópico com este filtro</div>';return;}
+  wrap.innerHTML=ts.map(t=>{
+    const d=daysToNext(t);
+    const dLbl=d===null?null:d<0?'<span class="badge b-vermelho" style="font-size:10px">⚠️ '+Math.abs(d)+'d atrasado</span>':d===0?'<span class="badge b-amarelo" style="font-size:10px">🔥 Hoje</span>':'<span class="badge b-cinza" style="font-size:10px">em '+d+'d</span>';
+    return '<div class="topico-card">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--texto)">'+t.topico+'</div>'+
+        '<div style="display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap">'+
+          statusBadge(t.status)+prioBadge(t.prioridade)+(dLbl||'')+
+          (t.ultimoEstudo?'<span style="font-size:10px;color:var(--texto3);font-family:var(--mono)">último: '+t.ultimoEstudo+'</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">'+
+        acertoWidget(t.acerto)+
+        (t.proxRevisao?'<span style="font-size:10px;color:var(--texto3);font-family:var(--mono)">próx: '+t.proxRevisao+'</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// REVISÕES
+function setRevF(el){
+  document.querySelectorAll('#page-revisoes .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');revFilter=el.dataset.f;renderRevisoes();
+}
+function renderRevisoes(){
+  const today=new Date();today.setHours(0,0,0,0);
+  let items=cache.topicos.map(t=>({t,d:daysToNext(t)})).filter(({d})=>{
+    if(revFilter==='urg')    return d!==null&&d<0;
+    if(revFilter==='semana') return d!==null&&d<=7;
+    if(revFilter==='21')     return d!==null&&d<=21;
+    return d!==null;
+  }).sort((a,b)=>(a.d||0)-(b.d||0));
+  const el=document.getElementById('rev-list');
+  if(!items.length){el.innerHTML='<div class="empty">Nenhuma revisão neste filtro</div>';return;}
+  el.innerHTML=items.map(({t,d})=>{
+    const cls=d<0?'urg':d<=5?'soon':'ok';
+    const lbl=d<0?'⚠️ '+Math.abs(d)+'d atrasado':d===0?'🔥 Hoje!':'em '+d+'d';
+    return '<div class="rev-item '+cls+'">'+
+      '<div><div style="font-size:13px;font-weight:600">'+t.disciplina+' — '+t.topico+'</div>'+
+      '<div style="font-size:11px;color:var(--texto3);margin-top:2px;font-family:var(--mono)">Acerto: '+(t.acerto||0)+'% · '+revInterval(t.acerto||0)+'d · '+(t.proxRevisao||'—')+'</div></div>'+
+      '<span class="badge '+(d<0?'b-vermelho':d<=5?'b-amarelo':'b-verde')+'" style="font-size:11px">'+lbl+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+// HISTÓRICO
+function renderHistorico(){
+  const search=document.getElementById('hist-search')?.value||'';
+  let h=cache.historico.filter(x=>!search||(x.disciplina+x.topico).toLowerCase().includes(search.toLowerCase())).slice(0,30);
+  const list=document.getElementById('hist-list');
+  list.innerHTML=h.length?h.map(x=>
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#fff;border-radius:9px;border:1px solid var(--borda);margin-bottom:7px">'+
+      '<div><div style="font-size:13px;font-weight:600">'+x.disciplina+' — '+x.topico+'</div>'+
+      '<div style="font-size:11px;color:var(--texto3);margin-top:2px;font-family:var(--mono)">'+(x.data||'—')+(x.obs?' · '+x.obs:'')+'</div></div>'+
+      '<div style="text-align:right">'+acertoWidget(x.acerto)+'<div style="margin-top:4px">'+statusBadge(x.status)+'</div></div>'+
+    '</div>'
+  ).join(''):'<div class="empty">Nenhuma sessão. Use /estudei no Telegram.</div>';
+}
+
+// KANBAN
+function renderKanban(){
+  const colunas=[
+    {status:'Dominado',            label:'Dominado',       bg:'#1B4332',fg:'#fff',cardBg:'#F0FBF4',cardBorder:'#B7DFBE'},
+    {status:'Concluído 2ª Revisão',label:'Conc. 2ª Rev',   bg:'#52B788',fg:'#fff',cardBg:'#EAF9F0',cardBorder:'#9FD9B8'},
+    {status:'Concluído 1ª Revisão',label:'Conc. 1ª Rev',   bg:'#F9C74F',fg:'#5A3E00',cardBg:'#FFFBF0',cardBorder:'#F9C74F'},
+    {status:'Em andamento',         label:'Em andamento',   bg:'#F4845F',fg:'#fff',cardBg:'#FFF5F2',cardBorder:'#F4845F'},
+    {status:'Não iniciado',         label:'Não iniciado',   bg:'#AAAAAA',fg:'#fff',cardBg:'#FAFAFA',cardBorder:'#DDDDDD'},
+  ];
+  const board=document.getElementById('kanban-board');
+  if(!board)return;
+  const ts=cache.topicos||[];
+  board.innerHTML='<div class="kanban-board">'+colunas.map(col=>{
+    const tops=ts.filter(t=>t.status===col.status);
+    const porDisc={};
+    tops.forEach(t=>{if(!porDisc[t.disciplina])porDisc[t.disciplina]=[];porDisc[t.disciplina].push(t);});
+    const cards=Object.entries(porDisc).map(([disc,items])=>
+      '<div class="kanban-disc-label" style="color:'+col.bg+'">'+disc+'</div>'+
+      items.map(t=>{
+        const today=new Date();today.setHours(0,0,0,0);
+        const atrasado=t.proxRevisao&&new Date(t.proxRevisao.split('/').reverse().join('-'))<today&&t.acerto>0;
+        const nome=t.topico.length>50?t.topico.slice(0,47)+'...':t.topico;
+        const acStr=t.acerto>0?' <span style="opacity:.6">'+t.acerto+'%</span>':'';
+        return '<div class="kanban-card" style="background:'+col.cardBg+';border-color:'+(atrasado?'#FF4444':col.cardBorder)+';color:'+(atrasado?'#FF4444':'#333')+'">'+nome+acStr+'</div>';
+      }).join('')
+    ).join('');
+    return '<div class="kanban-col">'+
+      '<div class="kanban-col-head" style="background:'+col.bg+';color:'+col.fg+'">'+
+        '<span>'+col.label+'</span><span style="background:rgba(255,255,255,.25);padding:1px 7px;border-radius:10px;font-size:10px">'+tops.length+'</span>'+
+      '</div>'+
+      '<div class="kanban-col-body" style="background:'+col.cardBg.replace('F0','E8')+'">'+cards+'</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+// REVISÕES PENDENTES
+function renderPendentes(){
+  const el=document.getElementById('pendentes-content');
+  if(!el)return;
+  const ts=cache.topicos||[];
+  const today=new Date();today.setHours(0,0,0,0);
+  const hoje7=new Date(today);hoje7.setDate(hoje7.getDate()+7);
+  const hoje30=new Date(today);hoje30.setDate(hoje30.getDate()+30);
+
+  function parseD(s){if(!s)return null;const p=s.split('/');return p.length===3?new Date(p[2],p[1]-1,p[0]):null;}
+  function diffDias(d){return d?Math.ceil((d-today)/86400000):null;}
+
+  const atrasadas=[], estaSem=[], prox30=[];
+  ts.forEach(t=>{
+    const d=parseD(t.proxRevisao);
+    if(!d||t.acerto===0)return;
+    const diff=diffDias(d);
+    const item={...t,diff,dataStr:t.proxRevisao};
+    if(diff<0)atrasadas.push(item);
+    else if(diff<=7)estaSem.push(item);
+    else if(diff<=30)prox30.push(item);
+  });
+
+  function secao(titulo,items,bgHead,fgHead,bgRow){
+    if(!items.length)return'';
+    const rows=items.sort((a,b)=>a.diff-b.diff).map(t=>{
+      const diasStr=t.diff<0?Math.abs(t.diff)+'d atrasado':t.diff===0?'HOJE':'em '+t.diff+'d';
+      const bgDias=t.diff<0?'#FF4444':t.diff<=3?'#FFD700':'#D8F3DC';
+      const fgDias=t.diff<0?'#fff':t.diff<=3?'#5A3E00':'#1B4332';
+      return '<div class="pend-row">'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:11px;font-weight:600;color:var(--texto)">'+t.disciplina+'</div>'+
+          '<div style="font-size:11px;color:var(--texto2)">'+t.topico+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;align-items:center;flex-shrink:0">'+
+          acertoWidget(t.acerto)+
+          '<span style="font-size:11px;color:var(--texto3);font-family:var(--mono)">'+t.dataStr+'</span>'+
+          '<span class="badge" style="background:'+bgDias+';color:'+fgDias+';font-size:10px">'+diasStr+'</span>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    return '<div class="pend-section">'+
+      '<div class="pend-section-head" style="background:'+bgHead+';color:'+fgHead+'">'+titulo+' <span style="background:rgba(255,255,255,.25);padding:1px 8px;border-radius:10px;font-size:11px">'+items.length+'</span></div>'+
+      rows+'</div>';
+  }
+
+  const html=secao('🔴 Atrasadas',atrasadas,'#FF4444','#fff','#FFF5F5')+
+    secao('🟡 Esta semana',estaSem,'#FFD700','#5A3E00','#FFFBF0')+
+    secao('🟢 Próximos 30 dias',prox30,'#52B788','#fff','#F0FBF4');
+
+  el.innerHTML=html||'<div class="empty"><div style="font-size:32px;margin-bottom:10px">✅</div>Nenhuma revisão pendente!</div>';
+}
+
+// INIT
+syncData();
+</script>
+</body>
+</html>
